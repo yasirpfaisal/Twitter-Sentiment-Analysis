@@ -1,6 +1,7 @@
 import streamlit as st
 from utils.data_loader import load_data
 from utils.visualizer import Visualizer
+import pandas as pd
 
 # --- Page Config ---
 st.set_page_config(page_title="Twitter Sentiment Dashboard", page_icon="🐦", layout="wide")
