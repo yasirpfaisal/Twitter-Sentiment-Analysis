@@ -18,7 +18,7 @@ class Visualizer:
         return fig
 
     def plot_sentiment_distribution(self):
-        fig = px.donut(self.df, names='sentiment_label', 
+        fig = px.pie(self.df, names='sentiment_label', 
                        title='Sentiment Breakdown',
                        color='sentiment_label',
                        color_discrete_map=self.color_map,
