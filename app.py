@@ -17,7 +17,6 @@ DATA_PATH = 'data/sample_data.csv'
 full_df = load_data(DATA_PATH)
 
 if full_df.empty:
-    st.info("Please ensure 'sample_data.csv' is in the 'data/' folder and has columns: id_str, text, created_at, polarity, user_location")
     st.stop()
 
 # --- Sidebar ---
@@ -36,29 +35,29 @@ viz = Visualizer(filtered_df)
 
 # --- Main Dashboard ---
 st.title("🐦 Real-Time Sentiment Tracker")
-st.markdown(f"**Data Range:** {start} to {end}")
 
 # Metrics
 col1, col2, col3, col4 = st.columns(4)
 with col1:
     st.metric("Total Tweets", f"{len(filtered_df):,}")
 with col2:
+    # Average Polarity (-1 to 1)
     avg_pol = filtered_df['polarity'].mean()
-    st.metric("Avg Polarity", f"{avg_pol:.3f}", delta_color="normal")
+    st.metric("Avg Polarity", f"{avg_pol:.3f}")
 with col3:
-    # Calculate Percentage of Positive Tweets
+    # Positive Percentage
     pos_count = len(filtered_df[filtered_df['sentiment_label'] == 'Positive'])
     pos_pct = (pos_count / len(filtered_df) * 100) if len(filtered_df) > 0 else 0
     st.metric("Positive %", f"{pos_pct:.1f}%")
 with col4:
-    # Calculate Percentage of Negative Tweets
+    # Negative Percentage
     neg_count = len(filtered_df[filtered_df['sentiment_label'] == 'Negative'])
     neg_pct = (neg_count / len(filtered_df) * 100) if len(filtered_df) > 0 else 0
     st.metric("Negative %", f"{neg_pct:.1f}%")
 
 st.markdown("---")
 
-# Charts Area
+# Charts
 tab1, tab2, tab3 = st.tabs(["📊 Overview", "🗺️ Location & Text", "📝 Raw Data"])
 
 with tab1:
@@ -67,9 +66,6 @@ with tab1:
         st.plotly_chart(viz.plot_sentiment_over_time(), use_container_width=True)
     with c2:
         st.plotly_chart(viz.plot_sentiment_distribution(), use_container_width=True)
-    
-    # New Histogram (Replacing Subjectivity)
-    st.plotly_chart(viz.plot_polarity_histogram(), use_container_width=True)
 
 with tab2:
     c1, c2 = st.columns(2)

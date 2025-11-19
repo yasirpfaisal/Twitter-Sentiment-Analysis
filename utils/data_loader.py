@@ -3,47 +3,41 @@ import streamlit as st
 
 @st.cache_data(ttl=3600)
 def load_data(file_path):
-    """
-    Loads CSV data, handles missing values, and parses dates.
-    Cached to improve performance on large datasets.
-    """
     try:
-        # Load data
+        # Load the CSV
         df = pd.read_csv(file_path)
-
-        # Validate required columns
-        required_columns = ['text', 'created_at', 'location', 'polarity', 'subjectivity', 'sentiment']
-        if not all(col in df.columns for col in required_columns):
-            missing = [col for col in required_columns if col not in df.columns]
-            st.error(f"Missing columns in CSV: {missing}")
+        
+        # 1. Check for the columns that ACTUALLY exist in your file
+        required_cols = ['text', 'created_at', 'polarity', 'user_location']
+        if not all(col in df.columns for col in required_cols):
+            st.error(f"The CSV file is missing one of these columns: {required_cols}")
+            st.write("Columns found:", df.columns.tolist())
             return pd.DataFrame()
 
-        # Date parsing
+        # 2. Parse Dates
         df['created_at'] = pd.to_datetime(df['created_at'], errors='coerce')
-        
-        # Drop rows with invalid dates
         df = df.dropna(subset=['created_at'])
-
-        # Extract time features
-        df['hour'] = df['created_at'].dt.hour
-        df['date'] = df['created_at'].dt.date
         
-        # Handle missing locations
-        df['location'] = df['location'].fillna("Unknown")
+        df['date'] = df['created_at'].dt.date
+        df['hour'] = df['created_at'].dt.hour
 
-        # Ensure sentiment is mapped correctly for readability
-        sentiment_map = {-1: 'Negative', 0: 'Neutral', 1: 'Positive'}
-        # Check if sentiment is numeric or string, adjust accordingly
-        if pd.api.types.is_numeric_dtype(df['sentiment']):
-             df['sentiment_label'] = df['sentiment'].map(sentiment_map)
-        else:
-             df['sentiment_label'] = df['sentiment'] # Assume it's already labelled
+        # 3. Handle Location (Fill missing values)
+        df['user_location'] = df['user_location'].fillna("Unknown")
+
+        # 4. Map Polarity integers (-1, 0, 1) to Sentiment Labels
+        # Your data has -1, 0, 1. We map them directly.
+        sentiment_map = {
+            -1: 'Negative',
+            0: 'Neutral',
+            1: 'Positive'
+        }
+        df['sentiment_label'] = df['polarity'].map(sentiment_map)
+        
+        # Handle any polarity values that might not be -1, 0, or 1
+        df['sentiment_label'] = df['sentiment_label'].fillna('Neutral')
 
         return df
 
-    except FileNotFoundError:
-        st.error(f"File not found at {file_path}. Please ensure data exists.")
-        return pd.DataFrame()
     except Exception as e:
-        st.error(f"Error loading data: {str(e)}")
+        st.error(f"Error processing data: {e}")
         return pd.DataFrame()
